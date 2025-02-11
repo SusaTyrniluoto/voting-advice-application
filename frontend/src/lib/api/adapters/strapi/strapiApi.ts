@@ -6,6 +6,7 @@ import type {
   StrapiConstituencyData,
   StrapiConstituencyGroupData,
   StrapiElectionData,
+  StrapiFactorLoadingData,
   StrapiFeedbackData,
   StrapiNominationData,
   StrapiPartyData,
@@ -27,7 +28,8 @@ export const STRAPI_API: Record<keyof StrapiApiReturnType, string> = {
   parties: 'api/parties',
   questions: 'api/questions',
   questionTypes: 'api/question-types',
-  questionCategories: 'api/question-categories'
+  questionCategories: 'api/question-categories',
+  factorLoadings: 'api/factor-loadings',
 } as const;
 
 export type StrapiApi = keyof StrapiApiReturnType;
@@ -49,4 +51,5 @@ export type StrapiApiReturnType = {
   questions: Array<StrapiQuestionData>;
   questionTypes: Array<StrapiQuestionTypeData>;
   questionCategories: Array<StrapiQuestionCategoryData>;
+  factorLoadings: Array<StrapiFactorLoadingData>;
 };

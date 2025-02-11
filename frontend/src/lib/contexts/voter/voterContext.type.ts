@@ -1,5 +1,5 @@
 import type { Id } from '@openvaa/core';
-import type { AnyQuestionVariant, Constituency, Election, QuestionCategory } from '@openvaa/data';
+import type { AnyQuestionVariant, Constituency, Election, FactorLoading, QuestionCategory } from '@openvaa/data';
 import type { MatchingAlgorithm } from '@openvaa/matching';
 import type { Readable, Writable } from 'svelte/store';
 import type { AppContext } from '../app';
@@ -7,6 +7,7 @@ import type { AnswerStore } from './answerStore.type';
 import type { FilterTree } from './filters/filterStore';
 import type { MatchTree } from './matchStore';
 import type { QuestionBlocks } from './questionBlockStore.type';
+
 
 export type VoterContext = AppContext & {
   /**
@@ -75,4 +76,10 @@ export type VoterContext = AppContext & {
    * The `Question`s in the selected `QuestionCategory`s as well as some utility methods.
    */
   selectedQuestionBlocks: Readable<QuestionBlocks>;
+  /**
+   * Factor loadings data for the current election, containing dimensionality reduction results
+   * and question-factor correlations. Returns null if no factor analysis has been performed
+   * or if there are insufficient responses.
+   */
+  factorLoadings: Readable<FactorLoading | null>;
 };

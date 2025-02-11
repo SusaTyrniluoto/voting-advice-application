@@ -301,3 +301,28 @@ export type StrapiFeedbackData = StrapiObject<{
   url?: string;
   userAgent?: string;
 }>;
+
+export interface StrapiFactorLoadingData {
+  id: string;
+  attributes: {
+    election: {
+      data: {
+        id: string;
+      }
+    };
+    results: {
+      questionFactorLoadings: Array<{
+        questionId: string;
+        factors: Array<number>;
+      }>;
+      explainedVariancePerFactor: Array<number>;
+      totalExplainedVariance: number;
+    };
+    metadata?: {
+      timestamp: string;
+      numberOfQuestions: number;
+      numberOfResponses: number;
+      converged: boolean;
+    };
+  };
+}

@@ -3,7 +3,7 @@ import {
   type ConstituencyData,
   type ConstituencyGroupData,
   ENTITY_TYPE,
-  type QuestionCategoryData
+  type QuestionCategoryData,
 } from '@openvaa/data';
 import { UniversalDataProvider } from '$lib/api/base/universalDataProvider';
 import { translate, translateObject } from '$lib/i18n/utils';
@@ -14,12 +14,13 @@ import {
   makeRule,
   parseBasics,
   parseCandidate,
+  parseFactorLoadings,
   parseImage,
   parseNominations,
   parseOrganization,
   parseQuestionType,
   parseRelationIds,
-  parseSingleRelationId
+  parseSingleRelationId,
 } from '../utils';
 import { parseEntityType } from '../utils/parseEntityType';
 import type { DPDataType } from '$lib/api/base/dataTypes';
@@ -28,9 +29,9 @@ import type {
   GetConstituenciesOptions,
   GetElectionsOptions,
   GetEntitiesOptions,
+  GetFactorLoadingsOptions,
   GetNominationsOptions,
-  GetQuestionsOptions
-} from '$lib/api/base/getDataOptions.type';
+  GetQuestionsOptions} from '$lib/api/base/getDataOptions.type';
 import type { Params } from '../strapiAdapter.type';
 
 export class StrapiDataProvider extends strapiAdapterMixin(UniversalDataProvider) {
@@ -57,7 +58,12 @@ export class StrapiDataProvider extends strapiAdapterMixin(UniversalDataProvider
         questions: {
           populate: {
             categoryIntros: 'true',
-            questionsIntro: 'true'
+            questionsIntro: 'true',
+            dynamicOrdering: {
+              populate: {
+                config: 'true'
+              }
+            }
           }
         },
         results: { populate: { cardContents: 'true' } },
@@ -234,7 +240,7 @@ export class StrapiDataProvider extends strapiAdapterMixin(UniversalDataProvider
         if (allQuestions.has(id)) continue;
         const { allowOpen, customData, entityType, fillingInfo, filterable, constituencies, questionType } = attributes;
         if (!questionType?.data) throw new Error(`Question ${id} has no questionType.`);
-        // Parsing the question type may yield props that belong to the question’s customData
+        // Parsing the question type may yield props that belong to the question's customData
         const { customData: typeCustom, ...typeProps } = parseQuestionType(questionType.data, locale);
         allQuestions.set(id, {
           ...parseBasics({ id, attributes }, locale),
@@ -256,5 +262,36 @@ export class StrapiDataProvider extends strapiAdapterMixin(UniversalDataProvider
       categories,
       questions: [...allQuestions.values()]
     };
+  }
+
+  protected async _getFactorLoadingData(options: GetFactorLoadingsOptions): Promise<DPDataType['factorLoadings']> {
+    try {
+      const response = await this.apiGet({ endpoint: 'factorLoadings', params: {} });
+
+      if (!response?.length) {
+        return null;
+      }
+
+      if (options.electionId) {
+        const targetElectionId = Array.isArray(options.electionId)
+          ? options.electionId[0]
+          : options.electionId;
+
+        const matchingFactorLoading = response.find(item =>
+          String(item.id) === String(targetElectionId)
+        );
+
+        if (!matchingFactorLoading) {
+          return null;
+        }
+
+        return parseFactorLoadings(matchingFactorLoading);
+      }
+
+      return parseFactorLoadings(response[0]);
+    } catch (error) {
+      console.error('Error fetching factor loadings:', error);
+      return null;
+    }
   }
 }

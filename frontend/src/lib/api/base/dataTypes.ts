@@ -21,7 +21,8 @@ export const DP_METHOD: Record<keyof DPDataType, keyof DataProvider> = {
   constituencies: 'getConstituencyData',
   nominations: 'getNominationData',
   entities: 'getEntityData',
-  questions: 'getQuestionData'
+  questions: 'getQuestionData',
+  factorLoadings: 'getFactorLoadingData'
 } as const;
 
 /**
@@ -44,6 +45,22 @@ export type DPDataType = {
     categories: Array<QuestionCategoryData>;
     questions: Array<AnyQuestionVariantData>;
   };
+  factorLoadings: {
+    id: string;
+    election: string,
+    questionFactorLoadings: Array<{
+      questionId: string;
+      factors: Array<number>;
+    }>;
+    explainedVariancePerFactor: Array<number>;
+    totalExplainedVariance: number;
+    metadata: {
+      timestamp: string;
+      numberOfQuestions: number;
+      numberOfResponses: number;
+      converged: boolean;
+    };
+  } | null;
 };
 
 /**

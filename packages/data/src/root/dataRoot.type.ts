@@ -20,7 +20,10 @@ import {
   EntityVariantTree,
   Faction,
   FactionNomination,
+  FactorLoading,
+  FactorLoadingData,
   Formatter,
+  Id,
   MissingAnswerFormatter,
   NominationVariantTree,
   Organization,
@@ -77,14 +80,19 @@ export type RootCollections = {
   candidateNominations: CandidateNomination;
   factionNominations: FactionNomination;
   organizationNominations: OrganizationNomination;
+  factorLoadings: FactorLoading;
 };
 
 /**
  * A hierarchical data format for providing all VAA data at once.
  */
 export type FullVaaData<
-  TEntities extends EntityVariantTree | Array<AnyEntityVariantData> = EntityVariantTree | Array<AnyEntityVariantData>,
-  TNominations extends NominationVariantTree | Array<AnyNominationVariantPublicData> =
+  TEntities extends EntityVariantTree | Array<AnyEntityVariantData> =
+    | EntityVariantTree
+    | Array<AnyEntityVariantData>,
+  TNominations extends
+    | NominationVariantTree
+    | Array<AnyNominationVariantPublicData> =
     | NominationVariantTree
     | Array<AnyNominationVariantPublicData>
 > = {
@@ -105,4 +113,5 @@ export type FullVaaData<
    * Nomimations can be provided either as a hierarchical tree or as an array of fully-specified nominations.
    */
   nominations: TNominations;
+  factorLoadings?: Record<Id, FactorLoadingData>;
 };

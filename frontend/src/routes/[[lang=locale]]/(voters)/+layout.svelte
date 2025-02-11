@@ -63,14 +63,17 @@
    * Handle the update inside a function so that we don't track $dataRoot, which would result in an infinite loop.
    * @returns `Error` if the data is invalid, `undefined` otherwise.
    */
-  function update([electionData, constituencyData]: [
+  function update([electionData, constituencyData, ]: [
     DPDataType['elections'] | Error,
     DPDataType['constituencies'] | Error
   ]): Error | undefined {
+
     if (!isValidResult(electionData)) return new Error('Error loading election data');
     if (!isValidResult(constituencyData)) return new Error('Error loading constituency data');
     $dataRoot.provideElectionData(electionData);
     $dataRoot.provideConstituencyData(constituencyData);
+
+
 
     ready = true;
   }

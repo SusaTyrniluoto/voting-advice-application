@@ -80,6 +80,37 @@ export function initVoterContext(): VoterContext {
   const selectedConstituencies = dataCollectionStore(constituencyId, (id) => get(dataRoot).getConstituency(id));
 
   ////////////////////////////////////////////////////////////
+  // FactorLoadings
+  ////////////////////////////////////////////////////////////
+
+  const factorLoadings = derived(
+    [dataRoot, selectedElections],
+    ([dataRoot, elections]) => {
+      try {
+        const election = elections[0];
+        if (!election) {
+          console.debug('No election selected, factor loadings will be null');
+          return null;
+        }
+
+        // Attempt to get factor loadings
+        const loadings = dataRoot.getFactorLoadings(election.id);
+
+        // Validate the loadings
+        if (!loadings || !loadings.questionFactorLoadings) {
+          console.debug(`No factor loadings found for election ${election.id}`);
+          return null;
+        }
+
+        return loadings;
+      } catch (error) {
+        console.warn('Error getting factor loadings:', error);
+        return null;
+      }
+    }
+  );
+
+  ////////////////////////////////////////////////////////////
   // Questions and QuestionCategories
   ////////////////////////////////////////////////////////////
 
@@ -211,6 +242,7 @@ export function initVoterContext(): VoterContext {
     constituenciesSelectable,
     electionsSelectable,
     entityFilters,
+    factorLoadings,
     firstQuestionId,
     infoQuestionCategories,
     infoQuestions,

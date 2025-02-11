@@ -30,6 +30,8 @@ import {
   EntityVariantTree,
   Faction,
   FactionNomination,
+  FactorLoading,
+  type FactorLoadingData,
   type FilterTargets,
   formatAllianceName,
   formatAllianceShortName,
@@ -188,6 +190,10 @@ export class DataRoot extends Updatable {
     return this.getCollectionAsArray('questionCategories');
   }
 
+  get factorLoadings(): Collection<FactorLoading> {
+    return this.getCollectionAsArray('factorLoadings');
+  }
+
   /**
    * A utility method for getting a collection by type and converting it to a `Collection`.
    * @param name - The name of the collection
@@ -197,7 +203,9 @@ export class DataRoot extends Updatable {
     TCollection extends keyof RootCollections,
     TArray = Array<NonNullable<RootCollections[TCollection]>>
   >(name: TCollection): TArray {
-    return (this.children[name] ? [...this.children[name]!.values()].sort(order) : []) as TArray;
+    return (
+      this.children[name] ? [...this.children[name]!.values()].sort(order) : []
+    ) as TArray;
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -211,7 +219,10 @@ export class DataRoot extends Updatable {
    * @returns The `EntityVariant` with the given id
    * @throws If the object is not found.
    */
-  getEntity<TType extends EntityType>(type: TType, id: Id): EntityVariant[TType] {
+  getEntity<TType extends EntityType>(
+    type: TType,
+    id: Id
+  ): EntityVariant[TType] {
     return this.getChild(this.getEntityCollectionName(type), id);
   }
 
@@ -240,14 +251,19 @@ export class DataRoot extends Updatable {
    * @returns The `NominationVariant` with the given id
    * @throws If the object is not found.
    */
-  getNomination<TType extends EntityType>(type: TType, id: Id): NominationVariant[TType] {
+  getNomination<TType extends EntityType>(
+    type: TType,
+    id: Id
+  ): NominationVariant[TType] {
     return this.getChild(this.getNominationCollectionName(type), id);
   }
 
   /**
    * Returns the name of the nomination collection for the given entity type.
    */
-  protected getNominationCollectionName(type: EntityType): keyof RootCollections {
+  protected getNominationCollectionName(
+    type: EntityType
+  ): keyof RootCollections {
     switch (type) {
       case ENTITY_TYPE.Alliance:
         return 'allianceNominations';
@@ -397,18 +413,31 @@ export class DataRoot extends Updatable {
   }
 
   /**
+   * Get a specific FactorLoading by id.
+   * @param id
+   * @returns The FactorLoading with the given id
+   * @throws If the object is not found.
+   */
+  getFactorLoadings(id: Id): FactorLoading {
+    return this.getChild('factorLoadings', id);
+  }
+
+  /**
    * A utility method for getting any child by collection name and id.
    * @param collection - The name of the collection
    * @param id - The id of the object
    * @returns The object in the collection with the given id
    * @throws If the object is not found.
    */
-  protected getChild<TCollection extends keyof RootCollections, TChild = NonNullable<RootCollections[TCollection]>>(
-    collection: TCollection,
-    id: Id
-  ): TChild {
+  protected getChild<
+    TCollection extends keyof RootCollections,
+    TChild = NonNullable<RootCollections[TCollection]>
+  >(collection: TCollection, id: Id): TChild {
     const res = this.children[collection]?.get(`${id}`);
-    if (!res) throw new DataNotFoundError(`Child in collection ${collection} with id ${id} not found`);
+    if (!res)
+      throw new DataNotFoundError(
+        `Child in collection ${collection} with id ${id} not found`
+      );
     return res as TChild;
   }
 
@@ -434,16 +463,17 @@ export class DataRoot extends Updatable {
     electionRound?: number;
     constituencyId?: Id;
   }): Array<NominationVariant[TEntity]> {
-    const collection = this.children[this.getNominationCollectionName(entityType)] as
-      | MappedCollection<NominationVariant[TEntity]>
-      | undefined;
+    const collection = this.children[
+      this.getNominationCollectionName(entityType)
+    ] as MappedCollection<NominationVariant[TEntity]> | undefined;
     return collection
       ? [...collection.values()].filter(
           (n) =>
             (!entityId || `${n.data.entityId}` === `${entityId}`) &&
             (!electionId || `${n.data.electionId}` === `${electionId}`) &&
             (!electionRound || n.electionRound === electionRound) &&
-            (!constituencyId || `${n.data.constituencyId}` === `${constituencyId}`)
+            (!constituencyId ||
+              `${n.data.constituencyId}` === `${constituencyId}`)
         )
       : [];
   }
@@ -491,7 +521,12 @@ export class DataRoot extends Updatable {
     electionRound?: number;
     constituencyId: Id;
   }): Array<NominationVariant[TEntity]> {
-    return this.findNominations({ entityType: type, electionId, electionRound, constituencyId });
+    return this.findNominations({
+      entityType: type,
+      electionId,
+      electionRound,
+      constituencyId
+    });
   }
 
   /**
@@ -499,8 +534,14 @@ export class DataRoot extends Updatable {
    * @param type - The type of the `QuestionCategory`
    * @param filters - Any `FilterTargets`
    */
-  findQuestions({ type, ...filters }: FilterTargets & { type?: QuestionCategoryType }): Array<AnyQuestionVariant> {
-    const hasFilters = Object.values(filters).filter((f) => f != null).length > 0;
+  findQuestions({
+    type,
+    ...filters
+  }: FilterTargets & {
+    type?: QuestionCategoryType;
+  }): Array<AnyQuestionVariant> {
+    const hasFilters =
+      Object.values(filters).filter((f) => f != null).length > 0;
     if (!type && !hasFilters) return this.questions;
     if (type && !hasFilters) return this.getQuestionsByType(type);
     // Apply filters first to categories and then questions
@@ -526,8 +567,24 @@ export class DataRoot extends Updatable {
    * @param type - The type to look for.
    * @returns An array of `QuestionCategory`s or `undefined` if questions haven't been provided yet.
    */
-  getQuestionCategoriesByType(type: QuestionCategoryType): Array<QuestionCategory> {
+  getQuestionCategoriesByType(
+    type: QuestionCategoryType
+  ): Array<QuestionCategory> {
     return this.questionCategories?.filter((qc) => qc.type === type);
+  }
+
+  /**
+   * Get factor loadings for a specific election
+   * @param electionId - The ID of the election
+   * @returns Factor loading data for the election or null if not found
+   */
+  getFactorLoadingForElection(electionId: Id): FactorLoading | null {
+    try {
+      return this.getFactorLoadings(electionId);
+    } catch (e) {
+      if (e instanceof DataNotFoundError) return null;
+      throw e;
+    }
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -538,13 +595,22 @@ export class DataRoot extends Updatable {
    * Provide all data at once. All existing data is reset.
    */
   provideFullData(data: FullVaaData): void {
-    const { elections, constituencies, questions, entities, nominations } = data;
+    const {
+      elections,
+      constituencies,
+      questions,
+      entities,
+      nominations,
+      factorLoadings
+    } = data;
+
     this.update(() => {
       this.provideElectionData(elections);
       this.provideConstituencyData(constituencies);
       this.provideQuestionData(questions);
       this.provideEntityData(entities);
       this.provideNominationData(nominations);
+      this.provideFactorLoadingData(factorLoadings ?? null);
     });
   }
 
@@ -559,8 +625,16 @@ export class DataRoot extends Updatable {
     constituencies: Array<ConstituencyData>;
   }) {
     this.update(() => {
-      this.provideData('constituencyGroups', groups, (args) => new ConstituencyGroup(args));
-      this.provideData('constituencies', constituencies, (args) => new Constituency(args));
+      this.provideData(
+        'constituencyGroups',
+        groups,
+        (args) => new ConstituencyGroup(args)
+      );
+      this.provideData(
+        'constituencies',
+        constituencies,
+        (args) => new Constituency(args)
+      );
     });
   }
 
@@ -572,12 +646,54 @@ export class DataRoot extends Updatable {
   }
 
   /**
+   * Provide factor loading data to the DataRoot. Existing data will be reset.
+   * @param data - Factor loading data or an array of factor loading data with IDs, or null
+   */
+  provideFactorLoadingData(
+    data:
+      | FactorLoadingData
+      | Array<FactorLoadingData & { id: Id }>
+      | Record<Id, FactorLoadingData>
+      | null
+  ): void {
+    if (!data) return;
+
+    let dataArray: Array<FactorLoadingData & { id: Id }>;
+
+    if (Array.isArray(data)) {
+      dataArray = data;
+    } else if ('id' in data) {
+      dataArray = [data as FactorLoadingData & { id: Id }];
+    } else {
+      dataArray = Object.entries(data as Record<Id, FactorLoadingData>).map(
+        ([entryId, entryData]) => {
+          const { id: _, ...rest } = entryData;
+          return {
+            id: entryId,
+            ...rest
+          };
+        }
+      );
+    }
+
+    this.provideData(
+      'factorLoadings',
+      dataArray,
+      (args) => new FactorLoading(args)
+    );
+  }
+
+  /**
    * Provide the data for all entities to the `DataRoot`. Existing data will be reset, along with any {@link DEPENDENT_COLLECTIONS | dependent collections}.
    * @param data - The data for all entities. Two formats are supported: a single array of `AnyEntityVariantData` with the `type` specified for each, or a structured object with these `EntityType`s as keys and the actual data without them.
    * @param options - Additional options for data provision.
    */
-  provideEntityData(data: Readonly<Array<AnyEntityVariantData>> | Readonly<EntityVariantTree>): void {
-    const dataArray: Readonly<Array<AnyEntityVariantData>> = !Array.isArray(data)
+  provideEntityData(
+    data: Readonly<Array<AnyEntityVariantData>> | Readonly<EntityVariantTree>
+  ): void {
+    const dataArray: Readonly<Array<AnyEntityVariantData>> = !Array.isArray(
+      data
+    )
       ? parseEntityTree(data as EntityVariantTree)
       : data;
     this.update(() => {
@@ -610,14 +726,20 @@ export class DataRoot extends Updatable {
    * @param options - Additional options for data provision.
    * @returns The created nominations because they’re needed by some nomination initializers.
    */
-  provideNominationData(data: Readonly<Array<AnyNominationVariantPublicData>> | Readonly<NominationVariantTree>): {
+  provideNominationData(
+    data:
+      | Readonly<Array<AnyNominationVariantPublicData>>
+      | Readonly<NominationVariantTree>
+  ): {
     allianceNominations: Array<AllianceNomination>;
     organizationNominations: Array<OrganizationNomination>;
     factionNominations: Array<FactionNomination>;
     candidateNominations: Array<CandidateNomination>;
   } {
     const out: Partial<ReturnType<this['provideNominationData']>> = {};
-    const dataArray: Readonly<Array<AnyNominationVariantData>> = !Array.isArray(data)
+    const dataArray: Readonly<Array<AnyNominationVariantData>> = !Array.isArray(
+      data
+    )
       ? parseNominationTree(data as NominationVariantTree)
       : data;
     this.update(() => {
@@ -656,7 +778,11 @@ export class DataRoot extends Updatable {
     questions: Array<AnyQuestionVariantData>;
   }): void {
     this.update(() => {
-      this.provideData('questionCategories', categories, (args) => new QuestionCategory(args));
+      this.provideData(
+        'questionCategories',
+        categories,
+        (args) => new QuestionCategory(args)
+      );
       this.provideData('questions', questions, createQuestion);
     });
   }
@@ -666,7 +792,10 @@ export class DataRoot extends Updatable {
    * @param args - Arguments passed to `createDeterministicId`.
    * @returns A deterministic `Id` for the object.
    */
-  createId<TType extends DynamicObjectType>(args: { type: TType; data: IdentityProps[TType] }): Id {
+  createId<TType extends DynamicObjectType>(args: {
+    type: TType;
+    data: IdentityProps[TType];
+  }): Id {
     return createDeterministicId({
       prefix: this.autoIdPrefix,
       ...args
@@ -704,7 +833,11 @@ export class DataRoot extends Updatable {
    * @param constructor - The constructor function for the new objects, which is passed both the `data` items and the `DataRoot` instance.
    * @returns The created objects.
    */
-  protected provideData<TCollection extends keyof RootCollections, TData, TChild extends RootCollections[TCollection]>(
+  protected provideData<
+    TCollection extends keyof RootCollections,
+    TData,
+    TChild extends RootCollections[TCollection]
+  >(
     collection: TCollection,
     data: Readonly<Array<TData>>,
     constructor: (params: { data: TData; root: DataRoot }) => TChild
@@ -719,7 +852,10 @@ export class DataRoot extends Updatable {
         const obj = constructor({ data: d, root: this });
         // Check that the object is valid before adding it to the collection
         const error = this.checkObject(obj);
-        if (error) throw new DataProvisionError(`Object ${obj.id} could not be added to ${collection}: ${error}.`);
+        if (error)
+          throw new DataProvisionError(
+            `Object ${obj.id} could not be added to ${collection}: ${error}.`
+          );
         collObject.set(obj.id, obj);
         objects.push(obj);
       })
@@ -736,35 +872,45 @@ export class DataRoot extends Updatable {
   /**
    * Generate an `Alliance`’s `name` from it’s member `Organization`s.
    */
-  formatAllianceName(args: Parameters<RootFormatters['allianceName']>[0]): string {
+  formatAllianceName(
+    args: Parameters<RootFormatters['allianceName']>[0]
+  ): string {
     return this.formatters.allianceName({ locale: this.locale, ...args });
   }
 
   /**
    * Generate an `Alliance`’s `shortName` from it’s member `Organization`s.
    */
-  formatAllianceShortName(args: Parameters<RootFormatters['allianceShortName']>[0]): string {
+  formatAllianceShortName(
+    args: Parameters<RootFormatters['allianceShortName']>[0]
+  ): string {
     return this.formatters.allianceShortName({ locale: this.locale, ...args });
   }
 
   /**
    * Format a `Candidate`'s full `name`. Override this to, e.g., combine the first and last name in a different order.
    */
-  formatCandidateName(args: Parameters<RootFormatters['candidateName']>[0]): string {
+  formatCandidateName(
+    args: Parameters<RootFormatters['candidateName']>[0]
+  ): string {
     return this.formatters.candidateName({ locale: this.locale, ...args });
   }
 
   /**
    * Format `Candidate` initials for a `shortName`
    */
-  formatCandidateShortName(args: Parameters<RootFormatters['candidateShortName']>[0]): string {
+  formatCandidateShortName(
+    args: Parameters<RootFormatters['candidateShortName']>[0]
+  ): string {
     return this.formatters.candidateShortName({ locale: this.locale, ...args });
   }
 
   /**
    * Generate a `Faction`’s name
    */
-  formatFactionName(args: Parameters<RootFormatters['factionName']>[0]): string {
+  formatFactionName(
+    args: Parameters<RootFormatters['factionName']>[0]
+  ): string {
     return this.formatters.factionName({ locale: this.locale, ...args });
   }
 
@@ -785,7 +931,8 @@ export class DataRoot extends Updatable {
     question: QuestionVariant[TQuestion];
   } & ArrayAnswerFormatterOptions): string {
     const { locale } = this;
-    if (answer == null) return this.formatters.missingAnswer({ locale, question });
+    if (answer == null)
+      return this.formatters.missingAnswer({ locale, question });
     // We use instanceof checks to catch subclasses of choice questions
     if (question instanceof SingleChoiceQuestion)
       // `getAnswer()` ensures that the answer value is not missing and the `Choice` is available
@@ -799,7 +946,9 @@ export class DataRoot extends Updatable {
       return this.formatters.multipleTextAnswer({
         locale,
         question,
-        value: (answer as Answer<Array<Id>>).value!.map((id) => question.getChoice(id)!.label),
+        value: (answer as Answer<Array<Id>>).value!.map(
+          (id) => question.getChoice(id)!.label
+        ),
         ...multipleAnswerArgs
       });
     // Otherwise the question is of a simple type
@@ -808,13 +957,29 @@ export class DataRoot extends Updatable {
     const { value } = answer;
     switch (type) {
       case QUESTION_TYPE.Boolean:
-        return this.formatters.booleanAnswer({ locale, question, value: value as boolean });
+        return this.formatters.booleanAnswer({
+          locale,
+          question,
+          value: value as boolean
+        });
       case QUESTION_TYPE.Date:
-        return this.formatters.dateAnswer({ locale, question, value: value as Date });
+        return this.formatters.dateAnswer({
+          locale,
+          question,
+          value: value as Date
+        });
       case QUESTION_TYPE.Image:
-        return this.formatters.imageAnswer({ locale, question, value: value as Image });
+        return this.formatters.imageAnswer({
+          locale,
+          question,
+          value: value as Image
+        });
       case QUESTION_TYPE.Number:
-        return this.formatters.numberAnswer({ locale, question, value: value as number });
+        return this.formatters.numberAnswer({
+          locale,
+          question,
+          value: value as number
+        });
       case QUESTION_TYPE.MultipleText:
         return this.formatters.multipleTextAnswer({
           locale,
@@ -823,7 +988,11 @@ export class DataRoot extends Updatable {
           ...multipleAnswerArgs
         });
       case QUESTION_TYPE.Text:
-        return this.formatters.textAnswer({ locale, question, value: value as string });
+        return this.formatters.textAnswer({
+          locale,
+          question,
+          value: value as string
+        });
       default:
         throw new DataTypeError(`Unsupported question type: ${type}`);
     }
@@ -834,7 +1003,10 @@ export class DataRoot extends Updatable {
    * @param type - The type of data to format.
    * @param formatter - The new formatter function.
    */
-  setFormatter<TType extends keyof RootFormatters>(type: TType, formatter: RootFormatters[TType]): void {
+  setFormatter<TType extends keyof RootFormatters>(
+    type: TType,
+    formatter: RootFormatters[TType]
+  ): void {
     this.update(() => (this.formatters[type] = formatter));
   }
 }

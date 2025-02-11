@@ -80,6 +80,7 @@ export {
   Entity,
   Faction,
   FactionNomination,
+  FactorLoading,
   ImageQuestion,
   MultipleChoiceCategoricalQuestion,
   MultipleChoiceQuestion,
