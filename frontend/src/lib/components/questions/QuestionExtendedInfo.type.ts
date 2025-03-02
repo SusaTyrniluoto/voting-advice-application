@@ -1,7 +1,11 @@
 import type { QuestionInfoSection } from '@openvaa/app-shared';
-import type { ExpanderProps } from '$lib/components/expander';
+import type { SvelteHTMLElements } from 'svelte/elements';
 
-export type QuestionInfoProps = Partial<ExpanderProps> & {
+export type QuestionInfoProps = SvelteHTMLElements['div'] & {
+  /**
+   * The title for the info, usually the question text.
+   */
+  title: string;
   /**
    * The info content to show as a plain or HTML string.
    */
