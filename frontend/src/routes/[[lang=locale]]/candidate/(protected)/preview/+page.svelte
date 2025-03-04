@@ -20,9 +20,9 @@ Used to show a preview of the candidate’s own profile using the `EntityDetails
   import { getLayoutContext } from '$lib/contexts/layout';
   import { EntityDetails } from '$lib/dynamic-components/entityDetails';
   import { logDebugError } from '$lib/utils/logger';
+  import { toNameCase } from '$lib/utils/text/toNameCase';
   import SingleCardContent from '../../../SingleCardContent.svelte';
   import type { Candidate } from '@openvaa/data';
-  import { toNameCase } from '$lib/utils/text/toNameCase';
 
   ////////////////////////////////////////////////////////////////////
   // Get contexts
