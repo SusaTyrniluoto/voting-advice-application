@@ -3,8 +3,12 @@ import {
   type AnyNominationVariantPublicData,
   type CandidateData,
   ENTITY_TYPE,
-  type OrganizationData
+  type OrganizationData,
+  type PublicAllianceNominationData,
+  type PublicCandidateNominationData,
+  type PublicOrganizationNominationData
 } from '@openvaa/data';
+import { translate } from '$lib/i18n';
 import { parseCandidate, parseOrganization, parseSingleRelationId } from '../utils';
 import type { CustomData } from '@openvaa/app-shared';
 import type { Id } from '@openvaa/core';
@@ -71,7 +75,11 @@ export function parseNominations(
     // Make sure we have a branch to add to
     tree[electionId] ??= {};
     tree[electionId][electionRound] ??= {};
-    tree[electionId][electionRound][constituencyId] ??= { organizations: {}, candidates: new Set() };
+    tree[electionId][electionRound][constituencyId] ??= {
+      alliances: new Set(),
+      organizations: {},
+      candidates: new Set()
+    };
     const branch = tree[electionId][electionRound][constituencyId];
 
     if (!partyId) {
@@ -96,6 +104,9 @@ export function parseNominations(
     }
   }
 
+  // Temporary fix
+  insertAlliances(tree);
+
   return {
     nominations: parsePartialTree(tree),
     entities: [...candidates.values(), ...organizations.values()]
@@ -110,24 +121,45 @@ function parsePartialTree(tree: PartialNominationTree): Array<AnyNominationVaria
   for (const electionId in tree) {
     for (const electionRound in tree[electionId]) {
       for (const constituencyId in tree[electionId][electionRound]) {
-        const { organizations, candidates } = tree[electionId][electionRound][constituencyId];
+        const { alliances, organizations, candidates } = tree[electionId][electionRound][constituencyId];
         const base = {
           electionId,
           electionRound: +electionRound,
           constituencyId
         };
-        const orgNominations = Object.values(organizations).map(({ candidates: orgCandidates, ...rest }) => ({
-          ...rest,
-          ...base,
-          entityType: ENTITY_TYPE.Organization,
-          candidates: [...orgCandidates.values()]
-        }));
-        const candNominations = [...candidates.values()].map((c) => ({
+        // First create organization nominations
+        const orgNominations: Array<PublicOrganizationNominationData> = Object.values(organizations).map(
+          ({ candidates: orgCandidates, ...rest }) => ({
+            ...rest,
+            ...base,
+            entityType: ENTITY_TYPE.Organization,
+            candidates: [...orgCandidates.values()]
+          })
+        );
+        // Then create alliance nominations, splicing organizations belonging to them from orgNominations
+        const allianceNominations: Array<PublicAllianceNominationData> = [...alliances.values()].map(
+          ({ organizations: allianceOrganizations, ...rest }) => {
+            const allies = allianceOrganizations.map((id) => {
+              const index = orgNominations.findIndex((o) => o.entityId === id);
+              if (index < 0)
+                throw new Error(`Allied organization with id ${id} not found or assigned to multiple Alliances`);
+              return orgNominations.splice(index, 1)[0];
+            });
+            return {
+              ...rest,
+              ...base,
+              entityType: ENTITY_TYPE.Alliance,
+              organizations: allies
+            };
+          }
+        );
+        // Finally, create independent candidate nominations
+        const candNominations: Array<PublicCandidateNominationData> = [...candidates.values()].map((c) => ({
           ...c,
           ...base,
           entityType: ENTITY_TYPE.Candidate
         }));
-        nominations.push(...orgNominations, ...candNominations);
+        nominations.push(...allianceNominations, ...orgNominations, ...candNominations);
       }
     }
   }
@@ -138,6 +170,7 @@ type PartialNominationTree = {
   [electionId: string]: {
     [electionRound: number]: {
       [constituencyId: string]: {
+        alliances: Set<PartialAllianceNomination>;
         organizations: {
           [partyId: string]: PartialOrganizationNomination;
         };
@@ -155,4 +188,68 @@ type PartialNomination = {
 
 type PartialOrganizationNomination = PartialNomination & {
   candidates: Set<PartialNomination>;
+};
+
+type PartialAllianceNomination = {
+  organizations: Array<Id>;
+  name?: string;
+  shortName?: string;
+};
+
+// TEMPORARY
+
+/**
+ * Insert mock alliances into `tree` in place. * @param tree
+ */
+function insertAlliances(tree: PartialNominationTree, allianceTree: AllianceTree = MOCK_ALLIANCES): void {
+  for (const electionId in allianceTree) {
+    for (const electionRound in allianceTree[electionId]) {
+      for (const constituencyId in allianceTree[electionId][electionRound]) {
+        const alliances = allianceTree[electionId][electionRound][constituencyId];
+        const branch = tree[electionId]?.[electionRound]?.[constituencyId];
+        if (!alliances?.length || !branch) continue;
+        alliances.forEach((a) => branch.alliances.add(parseAlliance(a)));
+      }
+    }
+  }
+}
+
+function parseAlliance(
+  { name, shortName, ...rest }: LocalizedAlliance,
+  locale?: string | null
+): PartialAllianceNomination {
+  return {
+    ...rest,
+    name: translate(name, locale) || undefined,
+    shortName: translate(shortName, locale) || undefined
+  };
+}
+
+const MOCK_ALLIANCES: AllianceTree = {
+  // hntqyg2c4mhc7lctquoobe28: {
+  //   1: {
+  //     t2sck0iqfifsbfsq98t8oymc: [
+  //       {
+  //         organizations: ['yy0hf20634jvbwny9271hr0s', 'ou29xmx0xpegikw6bzm15q3u']
+  //       }
+  //     ]
+  //   }
+  // }
+};
+
+/**
+ * The `Organization`s that form an alliance.
+ */
+type AllianceTree = {
+  [electionId: string]: {
+    [electionRound: number]: {
+      [constituencyId: string]: Array<LocalizedAlliance>;
+    };
+  };
+};
+
+type LocalizedAlliance = {
+  organizations: Array<Id>;
+  name?: LocalizedString;
+  shortName?: LocalizedString;
 };
