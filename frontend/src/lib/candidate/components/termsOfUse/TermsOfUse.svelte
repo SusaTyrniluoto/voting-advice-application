@@ -46,10 +46,10 @@ A utility component for displaying candidate app terms of use and privacy statem
     <div class="prose">
       {@html sanitizeHtml(termsOfUse)}
     </div>
-    <Button 
+    <Button
       href="https://nuorisoala.fi/palvelut/yhdenvertaisuus/turvallisemman-tilan-periaatteet-ja-vihapuheesta-vapaan-keskustelun-saannot/"
       target="_blank"
       text={$t('common.info')}
-      class="justify-self-center mt-md"/>
+      class="mt-md justify-self-center" />
   </section>
 {/if}
