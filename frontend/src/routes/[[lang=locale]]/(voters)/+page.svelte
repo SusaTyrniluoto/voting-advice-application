@@ -23,8 +23,8 @@ The frontpage of the app for voters.
   // Get contexts
   ////////////////////////////////////////////////////////////////////
 
-  const { appCustomization, appSettings, darkMode, getRoute, locale, t } = getAppContext();
-  const { pageStyles, topBarSettings } = getLayoutContext(onDestroy);
+  const { appSettings, darkMode, getRoute, locale, t } = getAppContext();
+  const { pageStyles } = getLayoutContext(onDestroy);
 
   ////////////////////////////////////////////////////////////////////
   // Edit layout
@@ -40,7 +40,7 @@ The frontpage of the app for voters.
 
 <MainContent
   title={$t('dynamic.appName')}
-  class="!pb-0 !px-0 !sm:px-lg" 
+  class="!sm:px-lg !px-0 !pb-0"
   contentClass="!max-w-xl p-lg sm:p-xl rounded-t-lg bg-base-300 grow">
   <HeadingGroup slot="heading" class="mt-[10vh] w-full p-lg">
     <PreHeading class="flex flex-col items-center"
