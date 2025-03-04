@@ -40,8 +40,8 @@
   // Get contexts
   ////////////////////////////////////////////////////////////////////
 
-  const { appCustomization, appSettings, darkMode, getRoute, locale, newUserEmail, t } = getCandidateContext();
-  const { pageStyles, topBarSettings } = getLayoutContext(onDestroy);
+  const { appSettings, darkMode, getRoute, locale, newUserEmail, t } = getCandidateContext();
+  const { pageStyles } = getLayoutContext(onDestroy);
 
   ////////////////////////////////////////////////////////////////////
   // Handle form and error messages
@@ -107,8 +107,9 @@
   // });
 </script>
 
-<MainContent title={$t('candidateApp.login.title')} 
-  class="!pb-0 !px-0 !sm:px-lg" 
+<MainContent
+  title={$t('candidateApp.login.title')}
+  class="!sm:px-lg !px-0 !pb-0"
   contentClass="!max-w-3xl p-lg sm:p-xl rounded-t-lg bg-base-300 grow">
   <HeadingGroup slot="heading" class="mt-lg w-full p-lg">
     <PreHeading class="flex flex-col items-center"
@@ -146,7 +147,7 @@
             {$t('candidateApp.login.enterEmailAndPassword')}
           </p>
         {:else}
-          <p class="max-w-md text-center font-bold text-lg">
+          <p class="max-w-md text-center text-lg font-bold">
             {$t('candidateApp.setPassword.passwordSetSuccesfully')}
           </p>
         {/if}
