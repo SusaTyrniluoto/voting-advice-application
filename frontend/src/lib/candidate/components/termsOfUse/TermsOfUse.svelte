@@ -49,6 +49,7 @@ A utility component for displaying candidate app terms of use and privacy statem
     <Button 
       href="https://nuorisoala.fi/palvelut/yhdenvertaisuus/turvallisemman-tilan-periaatteet-ja-vihapuheesta-vapaan-keskustelun-saannot/"
       target="_blank"
-      text={$t('common.info')}/>
+      text={$t('common.info')}
+      class="justify-self-center mt-md"/>
   </section>
 {/if}
