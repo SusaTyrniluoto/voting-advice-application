@@ -73,7 +73,7 @@
   let isDrawerOpen: boolean;
 </script>
 
-{#if $appSettings.access.voterApp}
+{#if true}
   <Layout {menuId} bind:isDrawerOpen>
     <VoterNav on:keyboardFocusOut={navigation.close} id={menuId} hidden={!isDrawerOpen} slot="menu" />
     <slot />
