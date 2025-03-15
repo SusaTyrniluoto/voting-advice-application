@@ -80,7 +80,8 @@ export async function load({ fetch, parent, params: { lang }, untrack, url }) {
       .getNominationData({
         electionId,
         constituencyId,
-        locale: lang
+        locale: lang,
+        includeUnconfirmed: true
       })
       .catch((e) => e)
   };
