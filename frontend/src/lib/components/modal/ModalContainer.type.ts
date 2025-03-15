@@ -6,9 +6,9 @@ export type ModalContainerProps = SvelteHTMLElements['dialog'] & {
    */
   title: string;
   /**
-   * Optional id of the element to autofocus when the dialog has opened. Note that this must be a focusable element. By default, the first focusable descendant will be focused.
+   * Optional id of the element to autofocus when the dialog has opened. Note that this must be a focusable element. By default, the first focusable descendant will be focused. Set to `false` to entirely disable autofocus.
    */
-  autofocusId?: string;
+  autofocusId?: string | false;
   /**
    * Whether to allow closing the modal by clicking outside of it. @default true
    */

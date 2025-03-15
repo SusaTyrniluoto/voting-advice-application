@@ -115,10 +115,10 @@ A modal dialog.
     setTimeout(() => {
       if (!isOpen) return;
       if (modalContainer) {
-        if (autofocusId != null) {
+        if (autofocusId) {
           const el = modalContainer.querySelector(`#${autofocusId}`);
           if (el) attemptFocus(el);
-        } else {
+        } else if (autofocusId !== false) {
           focusFirstDescendant(modalContainer);
         }
       }

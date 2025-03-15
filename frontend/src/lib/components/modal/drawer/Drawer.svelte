@@ -69,11 +69,11 @@ See the [`<ModalContainer>` component](../ModalContainer.svelte) documentation f
   bind:closeModal
   bind:openModal>
   <div
-    class="relative col-span-1 col-start-1 row-span-1 row-start-1 grid h-[calc(100vh-3rem)] w-full max-w-xl place-items-stretch
+    class="relative col-span-1 col-start-1 row-span-1 row-start-1 grid h-[calc(100%-3rem)] w-full max-w-xl place-items-stretch
       rounded-t-lg bg-base-100"
     transition:fly={{ y: '100%', duration: DELAY.xs }}>
-    <!-- Enable scrolling for the actual content but keep the close buttons fixed -->
-    <div class="overflow-y-auto">
+    <!-- Enable scrolling for the actual content but keep the close buttons fixed and add bottom padding if floating button is shown so that content behind it can be seen -->
+    <div class="overflow-y-auto" class:pb-[4rem]={showFloatingCloseButton}>
       <slot />
     </div>
 
@@ -91,7 +91,7 @@ See the [`<ModalContainer>` component](../ModalContainer.svelte) documentation f
         text="close"
         icon="close"
         on:click={closeModal}
-        class="!absolute bottom-0 right-0" />
+        class="!absolute bottom-0 right-0 z-10" />
     {/if}
   </div>
 </ModalContainer>

@@ -1,7 +1,7 @@
 import type { QuestionInfoSection } from '@openvaa/app-shared';
 import type { SvelteHTMLElements } from 'svelte/elements';
 
-export type QuestionInfoProps = SvelteHTMLElements['div'] & {
+export type QuestionExtendedInfoProps = SvelteHTMLElements['div'] & {
   /**
    * The title for the info, usually the question text.
    */
@@ -14,4 +14,12 @@ export type QuestionInfoProps = SvelteHTMLElements['div'] & {
    * Additional expandable info sections shown as plain or HTML strings.
    */
   infoSections?: Array<QuestionInfoSection>;
+  /**
+   * A callback triggered when an info section is collapsed. Mostly used for tracking.
+   */
+  onSectionCollapse?: (title: string) => void;
+  /**
+   * A callback triggered when an info section is expanded.  Mostly used for tracking.
+   */
+  onSectionExpand?: (title: string) => void;
 };
