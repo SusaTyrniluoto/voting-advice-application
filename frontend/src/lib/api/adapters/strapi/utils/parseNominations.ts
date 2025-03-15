@@ -9,6 +9,7 @@ import {
   type PublicOrganizationNominationData
 } from '@openvaa/data';
 import { translate } from '$lib/i18n';
+import alliances from './alliances.json';
 import { parseCandidate, parseOrganization, parseSingleRelationId } from '../utils';
 import type { CustomData } from '@openvaa/app-shared';
 import type { Id } from '@openvaa/core';
@@ -76,8 +77,8 @@ export function parseNominations(
     tree[electionId] ??= {};
     tree[electionId][electionRound] ??= {};
     tree[electionId][electionRound][constituencyId] ??= {
-      alliances: new Set(),
       organizations: {},
+      alliances: new Set(),
       candidates: new Set()
     };
     const branch = tree[electionId][electionRound][constituencyId];
@@ -105,7 +106,7 @@ export function parseNominations(
   }
 
   // Temporary fix
-  insertAlliances(tree);
+  insertAlliances(tree, alliances);
 
   return {
     nominations: parsePartialTree(tree),
@@ -201,7 +202,7 @@ type PartialAllianceNomination = {
 /**
  * Insert mock alliances into `tree` in place. * @param tree
  */
-function insertAlliances(tree: PartialNominationTree, allianceTree: AllianceTree = MOCK_ALLIANCES): void {
+function insertAlliances(tree: PartialNominationTree, allianceTree: AllianceTree = {}): void {
   for (const electionId in allianceTree) {
     for (const electionRound in allianceTree[electionId]) {
       for (const constituencyId in allianceTree[electionId][electionRound]) {
@@ -224,18 +225,6 @@ function parseAlliance(
     shortName: translate(shortName, locale) || undefined
   };
 }
-
-const MOCK_ALLIANCES: AllianceTree = {
-  // hntqyg2c4mhc7lctquoobe28: {
-  //   1: {
-  //     t2sck0iqfifsbfsq98t8oymc: [
-  //       {
-  //         organizations: ['yy0hf20634jvbwny9271hr0s', 'ou29xmx0xpegikw6bzm15q3u']
-  //       }
-  //     ]
-  //   }
-  // }
-};
 
 /**
  * The `Organization`s that form an alliance.
