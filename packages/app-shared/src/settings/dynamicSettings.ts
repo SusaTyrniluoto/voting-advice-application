@@ -42,14 +42,14 @@ export const dynamicSettings: DynamicSettings = {
   },
   questions: {
     categoryIntros: {
-      allowSkip: true,
+      allowSkip: false,
       show: true
     },
     interactiveInfo: {
-      enabled: false
+      enabled: true
     },
     questionsIntro: {
-      allowCategorySelection: true,
+      allowCategorySelection: false,
       show: true
     },
     showCategoryTags: true,
@@ -66,7 +66,7 @@ export const dynamicSettings: DynamicSettings = {
   },
   elections: {
     disallowSelection: false,
-    showElectionTags: true,
+    showElectionTags: false,
     startFromConstituencyGroup: undefined
   },
   access: {
