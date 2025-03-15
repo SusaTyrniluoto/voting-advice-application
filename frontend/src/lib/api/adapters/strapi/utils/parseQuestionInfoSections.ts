@@ -16,7 +16,8 @@ export function parseQuestionInfoSections(data: Array<object>, locale: string | 
         out.push({
           title: translate(title, locale),
           content: translate(content, locale),
-          visible: !!visible
+          // True by default
+          visible: visible !== false
         });
       }
     }
